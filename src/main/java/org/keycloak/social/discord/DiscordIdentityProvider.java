@@ -26,7 +26,7 @@ import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.oidc.mappers.AbstractJsonUserAttributeMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
-import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.http.simple.SimpleHttp;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.KeycloakSession;
@@ -100,7 +100,7 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         log.debug("doGetFederatedIdentity()");
         JsonNode profile;
         try {
-            profile = SimpleHttp.doGet(PROFILE_URL, session).header("Authorization", "Bearer " + accessToken).asJson();
+            profile = SimpleHttp.create(session).doGet(PROFILE_URL).header("Authorization", "Bearer " + accessToken).asJson();
         } catch (Exception e) {
             throw new IdentityBrokerException("Could not obtain user profile from discord.", e);
         }
@@ -117,7 +117,7 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
             for (String guild : mappedRoles.keySet()) {
                 JsonNode guildMember;
                 try {
-                    guildMember = SimpleHttp.doGet(String.format(GUILD_MEMBER_URL, guild), session).header("Authorization", "Bearer " + accessToken).asJson();
+                    guildMember = SimpleHttp.create(session).doGet(String.format(GUILD_MEMBER_URL, guild)).header("Authorization", "Bearer " + accessToken).asJson();
                     if (guildMember.has("joined_at") && mappedRoles.get(guild).containsKey(guild) ) {
                         groups.add(mappedRoles.get(guild).get(guild));
                     }
@@ -141,7 +141,7 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
 
     protected boolean isAllowedGuild(String accessToken) {
         try {
-            JsonNode guilds = SimpleHttp.doGet(GROUP_URL, session).header("Authorization", "Bearer " + accessToken).asJson();
+            JsonNode guilds = SimpleHttp.create(session).doGet(GROUP_URL).header("Authorization", "Bearer " + accessToken).asJson();
             Set<String> allowedGuilds = getConfig().getAllowedGuildsAsSet();
             for (JsonNode guild : guilds) {
                 String guildId = getJsonProperty(guild, "id");
