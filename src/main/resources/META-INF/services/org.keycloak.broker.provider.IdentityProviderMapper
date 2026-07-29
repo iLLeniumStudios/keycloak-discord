@@ -1,2 +1,3 @@
 org.keycloak.social.discord.DiscordUserAttributeMapper
 br.com.luizcarlosvianamelo.keycloak.broker.oidc.mappers.ClaimToGroupMapper
+org.keycloak.social.discord.mappers.ClaimToRoleMapper
