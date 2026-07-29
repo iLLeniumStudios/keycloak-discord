@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +48,22 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     }
 
     public DiscordIdentityProviderConfig() {
+    }
+
+    /**
+     * splitEntries reads a list-shaped setting. The admin console stores a multivalued property "##"
+     * separated (Constants.CFG_DELIMITER), while every version of this provider before the console grew those
+     * inputs stored one comma-separated string. Both are accepted, so upgrading does not silently empty a
+     * configuration that still parses.
+     */
+    static List<String> splitEntries(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(raw.split("\\s*##\\s*|,"))
+                .map(String::trim)
+                .filter(entry -> !entry.isEmpty())
+                .collect(Collectors.toList());
     }
 
     public String getAllowedGuilds() {
@@ -74,11 +91,7 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     }
 
     public Set<String> getAllowedGuildsAsSet() {
-        if (hasAllowedGuilds()) {
-            String guilds = getConfig().get(ALLOWED_GUILDS);
-            return Arrays.stream(guilds.split(",")).map(x -> x.trim()).collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
+        return new LinkedHashSet<>(splitEntries(getConfig().get(ALLOWED_GUILDS)));
     }
 
     public String getMappedRoles() {
@@ -96,11 +109,9 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
 
     public Map<String, HashMap<String, String>> getMappedRolesAsMap() {
         if (hasMappedRoles()) {
-            String mappedRoles = getMappedRoles();
             Map<String, HashMap<String, String>> parsedRoles = new HashMap<>();
-            for (String rawRole : mappedRoles.split(",")) {
-                rawRole = rawRole.trim();
-                String fragments[] = rawRole.split(":");
+            for (String rawRole : splitEntries(getMappedRoles())) {
+                String[] fragments = rawRole.split(":");
                 if (fragments.length != 3) {
                     continue;
                 }
