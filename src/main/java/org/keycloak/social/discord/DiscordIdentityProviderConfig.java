@@ -23,6 +23,7 @@ import org.keycloak.models.IdentityProviderModel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +38,9 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     public static final String PROMPT = "prompt";
     public static final String PROMPT_NONE = "promptNone";
     public static final String SKIP_EMAIL_SCOPE = "skipEmailScope";
+    public static final String ACCEPT_UNVERIFIED_EMAIL = "acceptUnverifiedEmail";
+    public static final String ADDITIONAL_SCOPES = "additionalScopes";
+    public static final String STORE_GUILDS = "storeGuilds";
 
     public DiscordIdentityProviderConfig(IdentityProviderModel model) {
         super(model);
@@ -49,12 +53,15 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
         return getConfig().get(ALLOWED_GUILDS);
     }
 
-    public boolean setPromptNone() {
-        if(getConfig().containsKey(PROMPT_NONE)) {
-            return true;
-        } else {
-            return false;
-        }
+    /**
+     * Whether Discord should skip its consent prompt for users who already authorised the application.
+     *
+     * Reads the VALUE, not merely the key's presence: the admin console writes "false" when the toggle is
+     * turned off rather than removing the entry, so a presence check stays true forever once it has been
+     * enabled once.
+     */
+    public boolean isPromptNone() {
+        return Boolean.parseBoolean(getConfig().get(PROMPT_NONE));
     }
 
     public void setAllowedGuilds(String allowedGuilds) {
@@ -118,6 +125,56 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
      * Per provider rather than per Keycloak instance: an installation may broker more than one Discord
      * application, and a JVM-wide switch could not tell them apart or show itself in the admin console.
      */
+    /**
+     * Extra OAuth scopes appended to the ones this provider derives from its own settings, space or comma
+     * separated. Discord returns a scope's data only when it was requested, so anything a custom mapper wants
+     * to read — "connections", say — has to be asked for here.
+     */
+    public String getAdditionalScopes() {
+        return getConfig().get(ADDITIONAL_SCOPES);
+    }
+
+    public void setAdditionalScopes(String additionalScopes) {
+        getConfig().put(ADDITIONAL_SCOPES, additionalScopes);
+    }
+
+    public Set<String> getAdditionalScopesAsSet() {
+        String scopes = getAdditionalScopes();
+        if (scopes == null || scopes.isBlank()) {
+            return Collections.emptySet();
+        }
+        return Arrays.stream(scopes.split("[,\\s]+"))
+                .map(String::trim)
+                .filter(scope -> !scope.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Whether an email Discord reports as unverified is accepted anyway. Off by default, and that default is
+     * the security fix: Discord will hand back an unverified address, and Keycloak's first-broker-login can
+     * link a brokered identity to an existing local account by email. Accepting one lets anyone who registers
+     * a Discord account against someone else's address take over that account.
+     */
+    public boolean isAcceptUnverifiedEmail() {
+        return Boolean.parseBoolean(getConfig().get(ACCEPT_UNVERIFIED_EMAIL));
+    }
+
+    public void setAcceptUnverifiedEmail(boolean accept) {
+        getConfig().put(ACCEPT_UNVERIFIED_EMAIL, String.valueOf(accept));
+    }
+
+    /**
+     * Whether every guild the user belongs to is stored for mappers to read. Requires the guilds scope, which
+     * is requested automatically when this is on.
+     */
+    public boolean isStoreGuilds() {
+        return Boolean.parseBoolean(getConfig().get(STORE_GUILDS));
+    }
+
+    public void setStoreGuilds(boolean storeGuilds) {
+        getConfig().put(STORE_GUILDS, String.valueOf(storeGuilds));
+    }
+
     public boolean isSkipEmailScope() {
         return Boolean.parseBoolean(getConfig().get(SKIP_EMAIL_SCOPE));
     }

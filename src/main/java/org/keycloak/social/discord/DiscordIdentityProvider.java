@@ -36,6 +36,7 @@ import org.keycloak.services.messages.Messages;
 import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -64,7 +65,7 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         config.setAuthorizationUrl(AUTH_URL);
         config.setTokenUrl(TOKEN_URL);
         config.setUserInfoUrl(PROFILE_URL);
-        if (config.setPromptNone()) {
+        if (config.isPromptNone()) {
             config.setPrompt("none");
         }
     }
@@ -92,7 +93,16 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
 
         user.setUsername(username);
         if (!getConfig().isSkipEmailScope()) {
-            user.setEmail(getJsonProperty(profile, "email"));
+            // Discord returns an address before the account has confirmed it. Keycloak's first-broker-login
+            // can link a brokered identity to an existing local user BY EMAIL, so accepting an unverified one
+            // lets anybody who signs up to Discord with someone else's address take over their account.
+            boolean verified = Boolean.parseBoolean(getJsonProperty(profile, "verified"));
+            if (verified || getConfig().isAcceptUnverifiedEmail()) {
+                user.setEmail(getJsonProperty(profile, "email"));
+            } else {
+                log.warnf("discord: dropping unverified email for user %s; enable %s to accept it",
+                        user.getId(), DiscordIdentityProviderConfig.ACCEPT_UNVERIFIED_EMAIL);
+            }
         }
         user.setIdp(this);
 
@@ -148,9 +158,34 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         }
         if (profile instanceof ObjectNode) {
             ((ObjectNode) profile).set("discord-groups", groups);
+            if (getConfig().isStoreGuilds()) {
+                ((ObjectNode) profile).set("discord-guilds", fetchGuildIds(accessToken));
+            }
         }
 
         return extractIdentityFromProfile(null, profile);
+    }
+
+    /**
+     * fetchGuildIds lists every guild the user belongs to, for AbstractJsonUserAttributeMapper to read under
+     * "discord-guilds". An empty array on failure: a mapper attribute is not worth failing a login over, and
+     * the guild ALLOW-list has its own call which does fail closed.
+     */
+    protected ArrayNode fetchGuildIds(String accessToken) {
+        ArrayNode ids = JsonNodeFactory.instance.arrayNode();
+        try {
+            JsonNode guilds = SimpleHttp.create(session).doGet(GROUP_URL)
+                    .header("Authorization", "Bearer " + accessToken).asJson();
+            for (JsonNode guild : guilds) {
+                String id = getJsonProperty(guild, "id");
+                if (id != null) {
+                    ids.add(id);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Could not obtain the user's guilds from discord.", e);
+        }
+        return ids;
     }
 
     protected boolean isAllowedGuild(String accessToken) {
@@ -193,13 +228,20 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
 
     @Override
     protected String getDefaultScopes() {
-        String scopes = getConfig().isSkipEmailScope() ? IDENTIFY_SCOPE : DEFAULT_SCOPE;
-        if (getConfig().hasAllowedGuilds()) {
-            scopes += " " + GUILDS_SCOPE;
+        Set<String> scopes = new LinkedHashSet<>();
+        scopes.add(IDENTIFY_SCOPE);
+        if (!getConfig().isSkipEmailScope()) {
+            scopes.add(EMAIL_SCOPE);
+        }
+        if (getConfig().hasAllowedGuilds() || getConfig().isStoreGuilds()) {
+            scopes.add(GUILDS_SCOPE);
         }
         if (getConfig().hasMappedRoles()) {
-            scopes += " " + ROLES_SCOPE;
+            scopes.add(ROLES_SCOPE);
         }
-        return scopes;
+        // Anything the operator asked for on top. A set, so naming one that is already implied is harmless
+        // rather than sending it twice.
+        scopes.addAll(getConfig().getAdditionalScopesAsSet());
+        return String.join(" ", scopes);
     }
 }
