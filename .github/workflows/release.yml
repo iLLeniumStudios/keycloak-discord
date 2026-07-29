@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - master
+  # Lets a release be cut by hand — needed at least once after enabling Actions on a fork, since commits
+  # pushed before that point never triggered anything.
+  workflow_dispatch:
+
+# semantic-release commits the version bump and changelog back, and creates the release.
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   build:
