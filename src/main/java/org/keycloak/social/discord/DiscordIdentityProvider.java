@@ -158,6 +158,13 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         }
         if (profile instanceof ObjectNode) {
             ((ObjectNode) profile).set("discord-groups", groups);
+            // Discord returns an avatar HASH; an Attribute Importer mapper can only read what is in the
+            // profile, so the resolved CDN url is injected under the OIDC-standard name. Without this a
+            // mapper configured for "picture" silently finds nothing.
+            String avatar = avatarUrl(getJsonProperty(profile, "id"), getJsonProperty(profile, "avatar"));
+            if (avatar != null) {
+                ((ObjectNode) profile).put("picture", avatar);
+            }
             if (getConfig().isStoreGuilds()) {
                 ((ObjectNode) profile).set("discord-guilds", fetchGuildIds(accessToken));
             }
