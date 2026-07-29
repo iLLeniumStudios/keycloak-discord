@@ -1,3 +1,27 @@
+# [0.7.0](https://github.com/iLLeniumStudios/keycloak-discord/compare/v0.6.1...v0.7.0) (2026-07-29)
+
+
+### Bug Fixes
+
+* maven deploys ([7f86498](https://github.com/iLLeniumStudios/keycloak-discord/commit/7f8649850563c0948f84e04b5f50b100f66e17a7))
+* reject unverified Discord emails, and repair the prompt toggle ([d5af08a](https://github.com/iLLeniumStudios/keycloak-discord/commit/d5af08aa1c8e8c4d24f30138740717b8355f69d1)), closes [#46](https://github.com/iLLeniumStudios/keycloak-discord/issues/46) [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59) [#43](https://github.com/iLLeniumStudios/keycloak-discord/issues/43) [#39](https://github.com/iLLeniumStudios/keycloak-discord/issues/39) [#46](https://github.com/iLLeniumStudios/keycloak-discord/issues/46) [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59) [#43](https://github.com/iLLeniumStudios/keycloak-discord/issues/43) [#39](https://github.com/iLLeniumStudios/keycloak-discord/issues/39) [#51](https://github.com/iLLeniumStudios/keycloak-discord/issues/51)
+* releases ([dae36e9](https://github.com/iLLeniumStudios/keycloak-discord/commit/dae36e956f5e275f9ce76e52c8a83ac01d78b006))
+
+
+### Features
+
+* a Claim to Role mapper, and a README that explains the two stages ([fa28cbf](https://github.com/iLLeniumStudios/keycloak-discord/commit/fa28cbface24f8ae222ebb8afcebc013f18e2518)), closes [#7](https://github.com/iLLeniumStudios/keycloak-discord/issues/7)
+* discord role sync ([9f6c287](https://github.com/iLLeniumStudios/keycloak-discord/commit/9f6c28757819d97f45f758177b934275c7c613bd))
+* discord role sync ([e98c2e5](https://github.com/iLLeniumStudios/keycloak-discord/commit/e98c2e52aaf72afe1e8d5751f94dea824c8b85cb))
+* one input box per guild and per role mapping, and the first tests ([5936aaf](https://github.com/iLLeniumStudios/keycloak-discord/commit/5936aaf31df087aafa64812d9505d23db1644145)), closes [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59)
+* optional email scope, and an OIDC-compliant picture attribute ([a8bd873](https://github.com/iLLeniumStudios/keycloak-discord/commit/a8bd873feffcda005402cd562542db7ed2e31ba3)), closes [#62](https://github.com/iLLeniumStudios/keycloak-discord/issues/62) [#64](https://github.com/iLLeniumStudios/keycloak-discord/issues/64)
+* **release:** changes ([4b58367](https://github.com/iLLeniumStudios/keycloak-discord/commit/4b58367b5db8ff2aa0f2474cbef7848b0345e3a8))
+* **release:** updated java ([5fbfac3](https://github.com/iLLeniumStudios/keycloak-discord/commit/5fbfac3fb7d9dd82ada89d0f65bf90b852234ad9))
+* update to keycloak 26.0.5 ([bb66494](https://github.com/iLLeniumStudios/keycloak-discord/commit/bb66494085a170d046d2c377e53548146cf90fd9))
+* update to keycloak 26.2.5 ([edf6dbb](https://github.com/iLLeniumStudios/keycloak-discord/commit/edf6dbb35464353b6bcbfdf5c652e864bb557cce))
+* update to keycloak 26.2.5 ([9f0673a](https://github.com/iLLeniumStudios/keycloak-discord/commit/9f0673a5de15ad7e2a813a99aba9ed21cec0c596))
+* update to keycloak 26.4.5 ([596006e](https://github.com/iLLeniumStudios/keycloak-discord/commit/596006e5284147a18ebb684701b61d06e1396596))
+
 # [1.2.0](https://github.com/FTBTeam/keycloak-discord/compare/v1.1.0...v1.2.0) (2026-01-26)
 
 
