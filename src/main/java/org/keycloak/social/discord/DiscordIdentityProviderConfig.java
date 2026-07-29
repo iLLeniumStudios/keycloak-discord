@@ -32,6 +32,12 @@ import java.util.stream.Collectors;
  */
 public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
+    public static final String ALLOWED_GUILDS = "allowedGuilds";
+    public static final String MAPPED_ROLES = "mappedRoles";
+    public static final String PROMPT = "prompt";
+    public static final String PROMPT_NONE = "promptNone";
+    public static final String SKIP_EMAIL_SCOPE = "skipEmailScope";
+
     public DiscordIdentityProviderConfig(IdentityProviderModel model) {
         super(model);
     }
@@ -40,11 +46,11 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     }
 
     public String getAllowedGuilds() {
-        return getConfig().get("allowedGuilds");
+        return getConfig().get(ALLOWED_GUILDS);
     }
 
     public boolean setPromptNone() {
-        if(getConfig().containsKey("promptNone")) {
+        if(getConfig().containsKey(PROMPT_NONE)) {
             return true;
         } else {
             return false;
@@ -52,32 +58,32 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     }
 
     public void setAllowedGuilds(String allowedGuilds) {
-        getConfig().put("allowedGuilds", allowedGuilds);
+        getConfig().put(ALLOWED_GUILDS, allowedGuilds);
     }
 
     public boolean hasAllowedGuilds() {
-        String guilds = getConfig().get("allowedGuilds");
+        String guilds = getConfig().get(ALLOWED_GUILDS);
         return guilds != null && !guilds.trim().isEmpty();
     }
 
     public Set<String> getAllowedGuildsAsSet() {
         if (hasAllowedGuilds()) {
-            String guilds = getConfig().get("allowedGuilds");
+            String guilds = getConfig().get(ALLOWED_GUILDS);
             return Arrays.stream(guilds.split(",")).map(x -> x.trim()).collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
 
     public String getMappedRoles() {
-        return getConfig().get("mappedRoles");
+        return getConfig().get(MAPPED_ROLES);
     }
 
     public void setMappedRoles(String mappedRoles) {
-        getConfig().put("mappedRoles", mappedRoles);
+        getConfig().put(MAPPED_ROLES, mappedRoles);
     }
 
     public boolean hasMappedRoles() {
-        String mappedRoles = getConfig().get("mappedRoles");
+        String mappedRoles = getConfig().get(MAPPED_ROLES);
         return mappedRoles != null && !mappedRoles.trim().isEmpty();
     }
 
@@ -102,6 +108,21 @@ public class DiscordIdentityProviderConfig extends OAuth2IdentityProviderConfig 
     }
 
     public void setPrompt(String prompt) {
-        getConfig().put("prompt", prompt);
+        getConfig().put(PROMPT, prompt);
+    }
+
+    /**
+     * Whether this provider requests Discord's email scope. Discord only returns an address when "email" is
+     * requested, and some deployments broker accounts that have none — or deliberately do not want one.
+     *
+     * Per provider rather than per Keycloak instance: an installation may broker more than one Discord
+     * application, and a JVM-wide switch could not tell them apart or show itself in the admin console.
+     */
+    public boolean isSkipEmailScope() {
+        return Boolean.parseBoolean(getConfig().get(SKIP_EMAIL_SCOPE));
+    }
+
+    public void setSkipEmailScope(boolean skipEmailScope) {
+        getConfig().put(SKIP_EMAIL_SCOPE, String.valueOf(skipEmailScope));
     }
 }

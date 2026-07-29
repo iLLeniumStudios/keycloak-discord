@@ -51,7 +51,11 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
     public static final String PROFILE_URL = "https://discord.com/api/users/@me";
     public static final String GROUP_URL = "https://discord.com/api/users/@me/guilds";
     public static final String GUILD_MEMBER_URL = "https://discord.com/api/users/@me/guilds/%s/member";
-    public static final String DEFAULT_SCOPE = "identify email";
+    public static final String IDENTIFY_SCOPE = "identify";
+    public static final String EMAIL_SCOPE = "email";
+    public static final String DEFAULT_SCOPE = IDENTIFY_SCOPE + " " + EMAIL_SCOPE;
+    public static final String AVATAR_URL = "https://cdn.discordapp.com/avatars/%s/%s.%s";
+    public static final String DEFAULT_AVATAR_URL = "https://cdn.discordapp.com/embed/avatars/%d.png";
     public static final String GUILDS_SCOPE = "guilds";
     public static final String ROLES_SCOPE = "guilds.members.read";
 
@@ -87,8 +91,18 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         }
 
         user.setUsername(username);
-        user.setEmail(getJsonProperty(profile, "email"));
+        if (!getConfig().isSkipEmailScope()) {
+            user.setEmail(getJsonProperty(profile, "email"));
+        }
         user.setIdp(this);
+
+        // "picture" is the OIDC standard claim for an avatar, so a mapper written against any other provider
+        // finds it under the name it already expects. Discord returns an avatar HASH, not a URL, and none at
+        // all for a user who never set one — hence the CDN default, which is derived from the account id.
+        String pictureUrl = avatarUrl(getJsonProperty(profile, "id"), getJsonProperty(profile, "avatar"));
+        if (pictureUrl != null) {
+            user.setUserAttribute("picture", pictureUrl);
+        }
 
         AbstractJsonUserAttributeMapper.storeUserProfileForMapper(user, profile, getConfig().getAlias());
 
@@ -155,9 +169,31 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         }
     }
 
+    /**
+     * avatarUrl builds the CDN URL for a Discord avatar hash, or the account's default avatar when it has
+     * none. An "a_" prefixed hash is animated and served as a gif; anything else is a png. Returns null when
+     * the id is missing, which leaves the attribute unset rather than pointing at a broken image.
+     */
+    static String avatarUrl(String userId, String avatarHash) {
+        if (userId == null || userId.isBlank()) {
+            return null;
+        }
+        if (avatarHash == null || avatarHash.isBlank()) {
+            // Discord's own fallback: (id >> 22) % 6 for migrated accounts. Parsed defensively — an id that
+            // is not a snowflake is not worth failing a login over.
+            try {
+                return String.format(DEFAULT_AVATAR_URL, (Long.parseUnsignedLong(userId) >> 22) % 6);
+            } catch (NumberFormatException e) {
+                return String.format(DEFAULT_AVATAR_URL, 0);
+            }
+        }
+        String extension = avatarHash.startsWith("a_") ? "gif" : "png";
+        return String.format(AVATAR_URL, userId, avatarHash, extension);
+    }
+
     @Override
     protected String getDefaultScopes() {
-        String scopes = DEFAULT_SCOPE;
+        String scopes = getConfig().isSkipEmailScope() ? IDENTIFY_SCOPE : DEFAULT_SCOPE;
         if (getConfig().hasAllowedGuilds()) {
             scopes += " " + GUILDS_SCOPE;
         }
