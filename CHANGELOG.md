@@ -1,3 +1,18 @@
+# [1.3.0](https://github.com/iLLeniumStudios/keycloak-discord/compare/v1.2.0...v1.3.0) (2026-07-29)
+
+
+### Bug Fixes
+
+* put the resolved avatar url in the profile so a mapper can read it ([029f33a](https://github.com/iLLeniumStudios/keycloak-discord/commit/029f33a8f7a6ce4e96236f89433a5c6dcd1c8b60))
+* reject unverified Discord emails, and repair the prompt toggle ([d5af08a](https://github.com/iLLeniumStudios/keycloak-discord/commit/d5af08aa1c8e8c4d24f30138740717b8355f69d1)), closes [#46](https://github.com/iLLeniumStudios/keycloak-discord/issues/46) [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59) [#43](https://github.com/iLLeniumStudios/keycloak-discord/issues/43) [#39](https://github.com/iLLeniumStudios/keycloak-discord/issues/39) [#46](https://github.com/iLLeniumStudios/keycloak-discord/issues/46) [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59) [#43](https://github.com/iLLeniumStudios/keycloak-discord/issues/43) [#39](https://github.com/iLLeniumStudios/keycloak-discord/issues/39) [#51](https://github.com/iLLeniumStudios/keycloak-discord/issues/51)
+
+
+### Features
+
+* a Claim to Role mapper, and a README that explains the two stages ([fa28cbf](https://github.com/iLLeniumStudios/keycloak-discord/commit/fa28cbface24f8ae222ebb8afcebc013f18e2518)), closes [#7](https://github.com/iLLeniumStudios/keycloak-discord/issues/7)
+* one input box per guild and per role mapping, and the first tests ([5936aaf](https://github.com/iLLeniumStudios/keycloak-discord/commit/5936aaf31df087aafa64812d9505d23db1644145)), closes [#59](https://github.com/iLLeniumStudios/keycloak-discord/issues/59)
+* optional email scope, and an OIDC-compliant picture attribute ([a8bd873](https://github.com/iLLeniumStudios/keycloak-discord/commit/a8bd873feffcda005402cd562542db7ed2e31ba3)), closes [#62](https://github.com/iLLeniumStudios/keycloak-discord/issues/62) [#64](https://github.com/iLLeniumStudios/keycloak-discord/issues/64)
+
 # [0.7.0](https://github.com/iLLeniumStudios/keycloak-discord/compare/v0.6.1...v0.7.0) (2026-07-29)
 
 
