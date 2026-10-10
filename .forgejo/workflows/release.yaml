@@ -17,15 +17,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: maven
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+      # The job image ships Node but no JDK or Maven.
+      - name: Toolchain
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends openjdk-21-jdk-headless maven >/dev/null
+          java -version
+          mvn -v
 
       - name: Test
         run: mvn -B verify
