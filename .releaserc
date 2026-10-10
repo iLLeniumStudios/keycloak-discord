@@ -2,40 +2,41 @@
   "branches": [
     "master"
   ],
+  "repositoryUrl": "https://git.illenium.net/waseem/keycloak-discord.git",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
     [
-      "@terrestris/maven-semantic-release",
+      "@semantic-release/changelog",
       {
-        "mavenTarget": "deploy",
-        "clean": false,
-        "updateSnapshotVersion": true,
-        "settingsPath": "/home/runner/.m2/settings.xml",
-        "processAllModules": true
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "mvn -B -q versions:set -DnewVersion=${nextRelease.version} -DgenerateBackupPoms=false && mvn -B -q package -DskipTests"
       }
     ],
     [
       "@semantic-release/git",
       {
         "assets": [
-          "CHANGELOG.md", "pom.xml", "**/pom.xml"
+          "pom.xml",
+          "CHANGELOG.md"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],
     [
-      "@semantic-release/github",
+      "@saithodev/semantic-release-gitea",
       {
-        "successComment": false,
-        "failTitle": false,
-"assets": [
-      {
-        "path": "target/*.jar",
-        "label": "Keycloak Discord Extension"
-      }
-    ]
+        "assets": [
+          {
+            "path": "target/*.jar",
+            "label": "Keycloak Discord Extension"
+          }
+        ]
       }
     ]
   ]
